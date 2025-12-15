@@ -1,0 +1,1730 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="description" content="SmartComfort predicts room comfort levels using machine learning based on temperature, humidity, noise, air quality and lighting">
+    <meta name="keywords" content="smart comfort, room comfort, machine learning, temperature control, smart buildings">
+    <title>SmartComfort | Predicting Room Comfort with ML</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* Base Styles */
+        :root {
+            --primary-color: #4CAF50;
+            --primary-light: #81C784;
+            --primary-dark: #388E3C;
+            --secondary-color: #2E7D32;
+            --dark-color: #263238;
+            --dark-light: #37474F;
+            --light-color: #f5f5f5;
+            --text-color: #333;
+            --text-light: #777;
+            --white: #ffffff;
+            --shadow: 0 4px 6px rgba(0,0,0,0.1);
+            --transition: all 0.3s ease;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Poppins', sans-serif;
+            color: var(--text-color);
+            line-height: 1.6;
+            overflow-x: hidden;
+            background-color: var(--white);
+        }
+        
+        .container {
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        
+        .section {
+            padding: 100px 0;
+        }
+        
+        .section-title {
+            text-align: center;
+            margin-bottom: 60px;
+            font-size: 2.5rem;
+            color: var(--dark-color);
+            position: relative;
+        }
+        
+        .section-title::after {
+            content: '';
+            display: block;
+            width: 80px;
+            height: 4px;
+            background: var(--primary-color);
+            margin: 20px auto 0;
+            border-radius: 2px;
+        }
+        
+        .btn {
+            display: inline-block;
+            background: var(--primary-color);
+            color: white;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 500;
+            transition: var(--transition);
+            text-decoration: none;
+            box-shadow: var(--shadow);
+        }
+        
+        .btn:hover {
+            background: var(--primary-dark);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+        }
+        
+        .btn-outline {
+            background: transparent;
+            border: 2px solid var(--primary-color);
+            color: var(--primary-color);
+        }
+        
+        .btn-outline:hover {
+            background: var(--primary-color);
+            color: white;
+        }
+        
+        /* Navigation */
+        .navbar {
+            background: var(--white);
+            box-shadow: 0 2px 20px rgba(0,0,0,0.1);
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 1000;
+            padding: 15px 0;
+            transition: var(--transition);
+        }
+        
+        .navbar.scrolled {
+            padding: 10px 0;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.15);
+        }
+        
+        .navbar .container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--dark-color);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+        }
+        
+        .logo span {
+            color: var(--primary-color);
+        }
+        
+        .logo i {
+            margin-right: 10px;
+            color: var(--primary-color);
+        }
+        
+        .nav-links {
+            display: flex;
+            gap: 30px;
+        }
+        
+        .nav-links a {
+            color: var(--text-color);
+            text-decoration: none;
+            font-weight: 500;
+            transition: var(--transition);
+            position: relative;
+            padding: 5px 0;
+        }
+        
+        .nav-links a::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: var(--primary-color);
+            transition: var(--transition);
+        }
+        
+        .nav-links a:hover::after {
+            width: 100%;
+        }
+        
+        .nav-links a:hover {
+            color: var(--primary-color);
+        }
+        
+        .hamburger {
+            display: none;
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 5px;
+            z-index: 1001;
+        }
+        
+        .hamburger span {
+            display: block;
+            width: 25px;
+            height: 3px;
+            background: var(--dark-color);
+            margin: 5px 0;
+            transition: var(--transition);
+        }
+        
+        .hamburger.active span:nth-child(1) {
+            transform: rotate(45deg) translate(5px, 5px);
+        }
+        
+        .hamburger.active span:nth-child(2) {
+            opacity: 0;
+        }
+        
+        .hamburger.active span:nth-child(3) {
+            transform: rotate(-45deg) translate(5px, -5px);
+        }
+        
+        /* Mobile Menu */
+        .mobile-menu {
+            display: none;
+            position: fixed;
+            top: 70px;
+            left: 0;
+            width: 100%;
+            background: var(--white);
+            box-shadow: 0 5px 20px rgba(0,0,0,0.15);
+            z-index: 1000;
+            padding: 1.5rem 0;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+            transition: var(--transition);
+        }
+        
+        .mobile-menu.active {
+            display: flex;
+        }
+        
+        .mobile-menu a {
+            color: var(--text-color);
+            text-decoration: none;
+            font-weight: 500;
+            padding: 10px 20px;
+            transition: var(--transition);
+            border-radius: 5px;
+        }
+        
+        .mobile-menu a:hover {
+            background: rgba(76, 175, 80, 0.1);
+            color: var(--primary-color);
+        }
+        
+        /* Hero Section */
+        .hero {
+            background: linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.7)), url('https://images.unsplash.com/photo-1513694203232-719a280e022f?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            color: white;
+            height: 100vh;
+            min-height: 700px;
+            display: flex;
+            align-items: center;
+            text-align: center;
+            margin-top: 70px;
+            position: relative;
+        }
+        
+        .hero::before {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 100px;
+            background: linear-gradient(to top, var(--white), transparent);
+        }
+        
+        .hero-content {
+            max-width: 800px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 1;
+            animation: fadeInUp 1s ease;
+        }
+        
+        .hero h1 {
+            font-size: 3.5rem;
+            margin-bottom: 20px;
+            line-height: 1.2;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .hero p {
+            font-size: 1.3rem;
+            margin-bottom: 40px;
+            opacity: 0.9;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+        }
+        
+        .hero-buttons {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+        }
+        
+        /* How It Works */
+        .how-it-works {
+            background: var(--light-color);
+            position: relative;
+        }
+        
+        .pipeline {
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 30px;
+        }
+        
+        .step {
+            flex: 1;
+            min-width: 220px;
+            text-align: center;
+            padding: 40px 25px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: var(--shadow);
+            transition: var(--transition);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .step::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 5px;
+            background: var(--primary-color);
+        }
+        
+        .step:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.1);
+        }
+        
+        .step-icon {
+            font-size: 2.8rem;
+            color: var(--primary-color);
+            margin-bottom: 20px;
+            transition: var(--transition);
+        }
+        
+        .step:hover .step-icon {
+            transform: scale(1.1);
+        }
+        
+        .step h3 {
+            margin-bottom: 15px;
+            font-size: 1.4rem;
+            color: var(--dark-color);
+        }
+        
+        .step p {
+            color: var(--text-light);
+        }
+        
+        /* Demo Section */
+        .demo-container {
+            display: flex;
+            gap: 40px;
+            align-items: center;
+        }
+        
+        .demo-form {
+            flex: 1;
+            background: white;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: var(--shadow);
+            transition: var(--transition);
+        }
+        
+        .demo-form:hover {
+            box-shadow: 0 15px 30px rgba(0,0,0,0.1);
+        }
+        
+        .demo-result {
+            flex: 1;
+        }
+        
+        .form-group {
+            margin-bottom: 1.8rem;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: 500;
+            color: var(--dark-light);
+        }
+        
+        input[type="range"] {
+            width: 100%;
+            -webkit-appearance: none;
+            height: 10px;
+            background: #e0e0e0;
+            border-radius: 5px;
+            margin: 15px 0;
+            outline: none;
+        }
+        
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 22px;
+            height: 22px;
+            background: var(--primary-color);
+            border-radius: 50%;
+            cursor: pointer;
+            transition: var(--transition);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+        
+        input[type="range"]::-webkit-slider-thumb:hover {
+            transform: scale(1.1);
+            background: var(--primary-dark);
+        }
+        
+        .range-value {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: 500;
+        }
+        
+        .range-value span {
+            font-size: 1.1rem;
+            color: var(--dark-color);
+        }
+        
+        input[type="text"],
+        input[type="email"],
+        textarea {
+            width: 100%;
+            padding: 14px 20px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-family: inherit;
+            font-size: 1rem;
+            transition: var(--transition);
+        }
+        
+        input[type="text"]:focus,
+        input[type="email"]:focus,
+        textarea:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.2);
+            outline: none;
+        }
+        
+        textarea {
+            min-height: 150px;
+            resize: vertical;
+        }
+        
+        .result-card {
+            background: white;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: var(--shadow);
+            transition: var(--transition);
+            text-align: center;
+        }
+        
+        .result-card:hover {
+            box-shadow: 0 15px 30px rgba(0,0,0,0.1);
+        }
+        
+        .comfort-level {
+            margin: 30px 0;
+        }
+        
+        #comfort-score {
+            font-size: 4rem;
+            font-weight: 700;
+            color: var(--primary-color);
+            display: block;
+            line-height: 1;
+            margin: 20px 0;
+        }
+        
+        .comfort-scale {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 15px;
+            font-weight: 500;
+            color: var(--text-light);
+            position: relative;
+        }
+        
+        .comfort-scale::before {
+            content: '';
+            position: absolute;
+            top: -10px;
+            left: 0;
+            width: 100%;
+            height: 8px;
+            background: linear-gradient(to right, #f44336, #ffeb3b, #4CAF50);
+            border-radius: 4px;
+        }
+        
+        .comfort-feedback {
+            font-size: 1.2rem;
+            margin-bottom: 20px;
+            padding: 15px;
+            border-radius: 5px;
+            background: rgba(76, 175, 80, 0.1);
+        }
+        
+        .suggestions {
+            text-align: left;
+            margin-top: 30px;
+        }
+        
+        .suggestions h4 {
+            margin-bottom: 15px;
+            color: var(--dark-color);
+        }
+        
+        .suggestions ul {
+            list-style-type: none;
+        }
+        
+        .suggestions li {
+            margin-bottom: 10px;
+            padding-left: 25px;
+            position: relative;
+        }
+        
+        .suggestions li::before {
+            content: '→';
+            position: absolute;
+            left: 0;
+            color: var(--primary-color);
+            font-weight: bold;
+        }
+        
+        /* Use Cases */
+        .use-case-card {
+            display: flex;
+            gap: 60px;
+            align-items: center;
+            margin-bottom: 80px;
+        }
+        
+        .use-case-card.reverse {
+            flex-direction: row-reverse;
+        }
+        
+        .use-case-img {
+            flex: 1;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: var(--shadow);
+            transition: var(--transition);
+        }
+        
+        .use-case-img:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.15);
+        }
+        
+        .use-case-img img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: var(--transition);
+        }
+        
+        .use-case-img:hover img {
+            transform: scale(1.05);
+        }
+        
+        .use-case-content {
+            flex: 1;
+        }
+        
+        .use-case-content h3 {
+            font-size: 2rem;
+            margin-bottom: 20px;
+            color: var(--dark-color);
+            position: relative;
+            padding-bottom: 15px;
+        }
+        
+        .use-case-content h3::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 60px;
+            height: 3px;
+            background: var(--primary-color);
+        }
+        
+        .use-case-content p {
+            margin-bottom: 20px;
+            color: var(--text-light);
+        }
+        
+        .use-case-content ul {
+            margin-top: 25px;
+            list-style-type: none;
+        }
+        
+        .use-case-content li {
+            margin-bottom: 12px;
+            position: relative;
+            padding-left: 30px;
+        }
+        
+        .use-case-content li::before {
+            content: "✓";
+            color: var(--primary-color);
+            position: absolute;
+            left: 0;
+            font-weight: bold;
+        }
+        
+        /* About Section */
+        .about-content {
+            display: flex;
+            gap: 60px;
+            align-items: center;
+        }
+        
+        .about-text {
+            flex: 1;
+        }
+        
+        .about-text h3 {
+            font-size: 1.6rem;
+            margin: 30px 0 20px;
+            color: var(--dark-color);
+            position: relative;
+            padding-bottom: 10px;
+        }
+        
+        .about-text h3::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 40px;
+            height: 3px;
+            background: var(--primary-color);
+        }
+        
+        .about-text p {
+            margin-bottom: 15px;
+            color: var(--text-light);
+        }
+        
+        .about-text ul {
+            margin: 25px 0 0 25px;
+        }
+        
+        .about-text li {
+            margin-bottom: 12px;
+            position: relative;
+            padding-left: 25px;
+        }
+        
+        .about-text li::before {
+            content: "•";
+            color: var(--primary-color);
+            position: absolute;
+            left: 0;
+            font-size: 1.5rem;
+            line-height: 1;
+        }
+        
+        .about-image {
+            flex: 1;
+            text-align: center;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: var(--shadow);
+            transition: var(--transition);
+        }
+        
+        .about-image:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.15);
+        }
+        
+        .about-image img {
+            width: 100%;
+            height: auto;
+            transition: var(--transition);
+        }
+        
+        .about-image:hover img {
+            transform: scale(1.05);
+        }
+        
+        /* Contact Section */
+        .contact-container {
+            display: flex;
+            gap: 60px;
+        }
+        
+        .contact-info {
+            flex: 1;
+        }
+        
+        .contact-info h3 {
+            font-size: 2rem;
+            margin-bottom: 25px;
+            color: var(--dark-color);
+            position: relative;
+            padding-bottom: 15px;
+        }
+        
+        .contact-info h3::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 60px;
+            height: 3px;
+            background: var(--primary-color);
+        }
+        
+        .contact-info p {
+            margin-bottom: 30px;
+            color: var(--text-light);
+        }
+        
+        .info-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 25px;
+        }
+        
+        .info-item i {
+            font-size: 1.3rem;
+            color: var(--primary-color);
+            margin-right: 20px;
+            width: 25px;
+            text-align: center;
+        }
+        
+        .info-item span {
+            color: var(--text-color);
+        }
+        
+        .contact-form {
+            flex: 1;
+            background: white;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: var(--shadow);
+            transition: var(--transition);
+        }
+        
+        .contact-form:hover {
+            box-shadow: 0 15px 30px rgba(0,0,0,0.15);
+        }
+        
+        /* Footer */
+        .footer {
+            background: var(--dark-color);
+            color: white;
+            padding: 80px 0 30px;
+            position: relative;
+        }
+        
+        .footer::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 10px;
+            background: linear-gradient(to right, var(--primary-color), var(--primary-light));
+        }
+        
+        .footer-content {
+            display: flex;
+            gap: 60px;
+            margin-bottom: 50px;
+            flex-wrap: wrap;
+        }
+        
+        .footer-about {
+            flex: 2;
+        }
+        
+        .footer-links {
+            flex: 1;
+        }
+        
+        .footer-newsletter {
+            flex: 1;
+        }
+        
+        .footer h3 {
+            font-size: 1.4rem;
+            margin-bottom: 25px;
+            color: white;
+            position: relative;
+            padding-bottom: 10px;
+        }
+        
+        .footer h3::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 40px;
+            height: 3px;
+            background: var(--primary-color);
+        }
+        
+        .footer p {
+            color: #ddd;
+            margin-bottom: 20px;
+            opacity: 0.8;
+        }
+        
+        .footer a {
+            color: #ddd;
+            text-decoration: none;
+            display: block;
+            margin-bottom: 12px;
+            transition: var(--transition);
+            opacity: 0.8;
+        }
+        
+        .footer a:hover {
+            color: var(--primary-color);
+            opacity: 1;
+            transform: translateX(5px);
+        }
+        
+        .social-links {
+            display: flex;
+            gap: 15px;
+            margin-top: 25px;
+        }
+        
+        .social-links a {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 50%;
+            transition: var(--transition);
+        }
+        
+        .social-links a:hover {
+            background: var(--primary-color);
+            transform: translateY(-5px);
+        }
+        
+        .social-links i {
+            font-size: 1.2rem;
+        }
+        
+        .newsletter-form {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .newsletter-form input {
+            flex: 1;
+            padding: 12px 15px;
+            border: none;
+            border-radius: 5px;
+            font-family: inherit;
+        }
+        
+        .newsletter-form .btn {
+            padding: 12px 20px;
+        }
+        
+        .footer-bottom {
+            text-align: center;
+            padding-top: 30px;
+            border-top: 1px solid rgba(255,255,255,0.1);
+            color: #aaa;
+            font-size: 0.9rem;
+        }
+        
+        /* Loading Indicator */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255,255,255,0.9);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            flex-direction: column;
+        }
+        
+        .spinner {
+            width: 60px;
+            height: 60px;
+            border: 6px solid #f3f3f3;
+            border-top: 6px solid var(--primary-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        .loading-text {
+            margin-top: 20px;
+            font-size: 1.2rem;
+            color: var(--dark-color);
+            font-weight: 500;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        /* Back to Top Button */
+        .back-to-top {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 50px;
+            height: 50px;
+            background: var(--primary-color);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            cursor: pointer;
+            opacity: 0;
+            visibility: hidden;
+            transition: var(--transition);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            z-index: 999;
+        }
+        
+        .back-to-top.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        .back-to-top:hover {
+            background: var(--primary-dark);
+            transform: translateY(-5px);
+        }
+        
+        /* Responsive Styles */
+        @media (max-width: 1200px) {
+            .section {
+                padding: 80px 0;
+            }
+            
+            .hero h1 {
+                font-size: 3rem;
+            }
+        }
+        
+        @media (max-width: 992px) {
+            .use-case-card,
+            .about-content,
+            .contact-container {
+                flex-direction: column;
+                gap: 40px;
+            }
+            
+            .use-case-card.reverse {
+                flex-direction: column;
+            }
+            
+            .use-case-img,
+            .use-case-content,
+            .about-text,
+            .about-image,
+            .contact-info,
+            .contact-form {
+                width: 100%;
+            }
+            
+            .footer-content {
+                gap: 40px;
+            }
+            
+            .footer-about {
+                flex: 1 100%;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .section {
+                padding: 70px 0;
+            }
+            
+            .section-title {
+                font-size: 2.2rem;
+                margin-bottom: 50px;
+            }
+            
+            .nav-links {
+                display: none;
+            }
+            
+            .hamburger {
+                display: block;
+            }
+            
+            .hero {
+                min-height: 600px;
+                background-attachment: scroll;
+            }
+            
+            .hero h1 {
+                font-size: 2.5rem;
+            }
+            
+            .hero p {
+                font-size: 1.1rem;
+            }
+            
+            .hero-buttons {
+                flex-direction: column;
+                gap: 15px;
+            }
+            
+            .pipeline {
+                flex-direction: column;
+                gap: 20px;
+            }
+            
+            .step {
+                margin-bottom: 20px;
+            }
+            
+            .demo-container {
+                flex-direction: column;
+                gap: 30px;
+            }
+            
+            .footer-content {
+                flex-direction: column;
+            }
+        }
+        
+        @media (max-width: 576px) {
+            .section {
+                padding: 60px 0;
+            }
+            
+            .section-title {
+                font-size: 1.8rem;
+            }
+            
+            .hero h1 {
+                font-size: 2rem;
+            }
+            
+            .btn {
+                padding: 10px 25px;
+            }
+            
+            .contact-form,
+            .demo-form,
+            .result-card {
+                padding: 30px;
+            }
+            
+            .back-to-top {
+                width: 40px;
+                height: 40px;
+                font-size: 1rem;
+                bottom: 20px;
+                right: 20px;
+            }
+        }
+
+        /* Added for responsive images */
+        img {
+            max-width: 100%;
+            height: auto;
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loading">
+        <div class="spinner"></div>
+        <div class="loading-text">Analyzing comfort levels...</div>
+    </div>
+
+    <!-- Back to Top Button -->
+    <div class="back-to-top" id="backToTop">
+        <i class="fas fa-arrow-up"></i>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="navbar" id="navbar">
+        <div class="container">
+            <a href="#" class="logo"><i class="fas fa-leaf"></i>Smart<span>Comfort</span></a>
+            <div class="nav-links">
+                <a href="#home">Home</a>
+                <a href="#how-it-works">How It Works</a>
+                <a href="#demo">Demo</a>
+                <a href="#use-cases">Use Cases</a>
+                <a href="#about">About</a>
+                <a href="#contact">Contact</a>
+            </div>
+            <button class="hamburger">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Mobile Menu -->
+    <div class="mobile-menu">
+        <a href="#home">Home</a>
+        <a href="#how-it-works">How It Works</a>
+        <a href="#demo">Demo</a>
+        <a href="#use-cases">Use Cases</a>
+        <a href="#about">About</a>
+        <a href="#contact">Contact</a>
+    </div>
+
+    <!-- Hero Section -->
+    <section id="home" class="hero">
+        <div class="container">
+            <div class="hero-content">
+                <h1>Intelligent Room Comfort Prediction</h1>
+                <p>Our advanced machine learning system analyzes temperature, humidity, noise, air quality, and lighting to predict and optimize room comfort levels in real-time – perfect for smart buildings in climate-sensitive areas like Manali.</p>
+                <div class="hero-buttons">
+                    <a href="#demo" class="btn">Try Live Demo</a>
+                    <a href="#how-it-works" class="btn btn-outline">Learn More</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- How It Works Section -->
+    <section id="how-it-works" class="section how-it-works">
+        <h2 class="section-title">How It Works</h2>
+        <div class="container">
+            <div class="pipeline">
+                <div class="step">
+                    <div class="step-icon">
+                        <i class="fas fa-thermometer-half"></i>
+                    </div>
+                    <h3>1. Data Collection</h3>
+                    <p>IoT sensors continuously monitor temperature, humidity, noise levels, air quality, and lighting conditions throughout your space.</p>
+                </div>
+                <div class="step">
+                    <div class="step-icon">
+                        <i class="fas fa-brain"></i>
+                    </div>
+                    <h3>2. Machine Learning</h3>
+                    <p>Our ensemble of ML models (including XGBoost and Random Forest) processes the sensor data to identify comfort patterns.</p>
+                </div>
+                <div class="step">
+                    <div class="step-icon">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <h3>3. Comfort Prediction</h3>
+                    <p>The system generates a real-time comfort score (2-5) and identifies factors affecting occupant comfort.</p>
+                </div>
+                <div class="step">
+                    <div class="step-icon">
+                        <i class="fas fa-cogs"></i>
+                    </div>
+                    <h3>4. Automated Optimization</h3>
+                    <p>HVAC, lighting, and other systems are automatically adjusted to maximize comfort while minimizing energy consumption.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Demo Section -->
+    <section id="demo" class="section demo">
+        <h2 class="section-title">Live Comfort Predictor</h2>
+        <div class="container">
+            <div class="demo-container">
+                <div class="demo-form">
+                    <form id="comfort-form">
+                        <div class="form-group">
+                            <label for="temperature">Temperature (°C)</label>
+                            <input type="range" id="temperature" name="temperature" min="-10" max="60" value="22" step="0.1">
+                            <div class="range-value">
+                                <span>-10°C</span>
+                                <span id="temperature-value">22°C</span>
+                                <span>60°C</span>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="humidity">Humidity (%)</label>
+                            <input type="range" id="humidity" name="humidity" min="20" max="90" value="50" step="1">
+                            <div class="range-value">
+                                <span>20%</span>
+                                <span id="humidity-value">50%</span>
+                                <span>90%</span>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="noise">Noise Level (dB)</label>
+                            <input type="range" id="noise" name="noise" min="30" max="90" value="50" step="1">
+                            <div class="range-value">
+                                <span>30dB</span>
+                                <span id="noise-value">50dB</span>
+                                <span>90dB</span>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="air-quality">Air Quality (AQI)</label>
+                            <input type="range" id="air-quality" name="air-quality" min="0" max="300" value="50" step="1">
+                            <div class="range-value">
+                                <span>0</span>
+                                <span id="air-quality-value">50</span>
+                                <span>300</span>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="lighting">Lighting (lux)</label>
+                            <input type="range" id="lighting" name="lighting" min="100" max="2000" value="500" step="10">
+                            <div class="range-value">
+                                <span>100</span>
+                                <span id="lighting-value">500</span>
+                                <span>2000</span>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn">Predict Comfort Level</button>
+                    </form>
+                </div>
+                <div class="demo-result">
+                    <div class="result-card">
+                        <h3>Your Comfort Prediction</h3>
+                        <div class="comfort-level">
+                            <span id="comfort-score">-</span>
+                            <div class="comfort-scale">
+                                <span>Uncomfortable</span>
+                                <span>Fair</span>
+                                <span>Good</span>
+                                <span>Excellent</span>
+                            </div>
+                        </div>
+                        <div class="comfort-feedback" id="comfort-feedback">
+                            Adjust the sliders and click "Predict Comfort Level" to see results.
+                        </div>
+                        <div class="suggestions" id="suggestions"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Use Cases Section -->
+    <section id="use-cases" class="section use-cases">
+        <h2 class="section-title">Use Cases</h2>
+        <div class="container">
+            <div class="use-case-card">
+                <div class="use-case-img">
+                    <img src="https://images.unsplash.com/photo-1566073771259-6a8506099945?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80" alt="Hotel in Manali">
+                </div>
+                <div class="use-case-content">
+                    <h3>Hotels & Resorts</h3>
+                    <p>Enhance guest experience by automatically maintaining optimal room conditions. Our system adapts to Manali's unique climate to ensure comfort while reducing energy costs.</p>
+                    <ul>
+                        <li>Personalized room environments for each guest</li>
+                        <li>20-30% energy savings through smart optimization</li>
+                        <li>Predictive maintenance alerts for HVAC systems</li>
+                        <li>Integration with existing property management systems</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="use-case-card reverse">
+                <div class="use-case-img">
+                    <img src="https://images.unsplash.com/photo-1558002038-1055907df827?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80" alt="Smart Home">
+                </div>
+                <div class="use-case-content">
+                    <h3>Smart Homes</h3>
+                    <p>Create the perfect living environment that adapts to your preferences and the changing weather conditions throughout the day.</p>
+                    <ul>
+                        <li>Automated climate control based on occupancy</li>
+                        <li>Healthier indoor air quality monitoring</li>
+                        <li>Seamless integration with smart home ecosystems</li>
+                        <li>Personal comfort profiles for family members</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="use-case-card">
+                <div class="use-case-img">
+                    <img src="https://images.unsplash.com/photo-1497366811353-6870744d04b2?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80" alt="Office Space">
+                </div>
+                <div class="use-case-content">
+                    <h3>Commercial Spaces</h3>
+                    <p>Boost productivity and employee satisfaction by maintaining ideal working conditions throughout your facility.</p>
+                    <ul>
+                        <li>Zone-based comfort optimization for different areas</li>
+                        <li>Occupancy-aware environmental adjustments</li>
+                        <li>Detailed comfort analytics for facility managers</li>
+                        <li>Integration with building management systems</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- About Section -->
+    <section id="about" class="section about">
+        <h2 class="section-title">About SmartComfort</h2>
+        <div class="container">
+            <div class="about-content">
+                <div class="about-text">
+                    <h3>Our Mission</h3>
+                    <p>SmartComfort aims to revolutionize indoor environmental quality by leveraging machine learning to predict and optimize comfort levels in real-time. Our system bridges the gap between human comfort and energy efficiency in smart buildings, particularly in climate-sensitive regions like Manali.</p>
+                    
+                    <h3>Technical Innovation</h3>
+                    <p>We utilize an ensemble of advanced machine learning models including XGBoost, Random Forest, and Neural Networks to analyze multiple environmental factors. Our system continuously learns and adapts to provide increasingly accurate predictions tailored to your specific environment.</p>
+                    
+                    <h3>Key Differentiators</h3>
+                    <ul>
+                        <li><strong>Climate-Adaptive:</strong> Specially calibrated for Manali's unique weather patterns</li>
+                        <li><strong>Energy Efficient:</strong> Reduces HVAC costs by 20-30% while maintaining comfort</li>
+                        <li><strong>Real-Time:</strong> Processes sensor data and makes adjustments in milliseconds</li>
+                        <li><strong>Scalable:</strong> Works for single rooms or entire building complexes</li>
+                        <li><strong>User-Centric:</strong> Learns individual preferences over time</li>
+                    </ul>
+                </div>
+                <div class="about-image">
+                    <img src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80" alt="Technology Illustration">
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contact Section -->
+    <section id="contact" class="section contact">
+        <h2 class="section-title">Get In Touch</h2>
+        <div class="container">
+            <div class="contact-container">
+                <div class="contact-info">
+                    <h3>Contact Information</h3>
+                    <p>Have questions about SmartComfort or interested in implementing our system? Our team is ready to help you create the perfect indoor environment.</p>
+                    <div class="info-item">
+                        <i class="fas fa-envelope"></i>
+                        <span>info@smartcomfort.ai</span>
+                    </div>
+                    <div class="info-item">
+                        <i class="fas fa-phone"></i>
+                        <span>+91 98765 43210</span>
+                    </div>
+                    <div class="info-item">
+                        <i class="fas fa-map-marker-alt"></i>
+                        <span>Manali, Himachal Pradesh, India</span>
+                    </div>
+                    <div class="info-item">
+                        <i class="fas fa-clock"></i>
+                        <span>Monday-Friday: 9AM - 6PM</span>
+                    </div>
+                </div>
+                <div class="contact-form">
+                    <form id="contact-form">
+                        <div class="form-group">
+                            <input type="text" id="name" name="name" placeholder="Your Name" required>
+                        </div>
+                        <div class="form-group">
+                            <input type="email" id="email" name="email" placeholder="Your Email" required>
+                        </div>
+                        <div class="form-group">
+                            <input type="text" id="subject" name="subject" placeholder="Subject">
+                        </div>
+                        <div class="form-group">
+                            <textarea id="message" name="message" placeholder="Your Message" required></textarea>
+                        </div>
+                        <button type="submit" class="btn">Send Message</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-about">
+                    <a href="#" class="logo"><i class="fas fa-leaf"></i>Smart<span>Comfort</span></a>
+                    <p>Predicting and optimizing room comfort using machine learning for smarter, more sustainable buildings in climate-sensitive regions.</p>
+                    <div class="social-links">
+                        <a href="#"><i class="fab fa-twitter"></i></a>
+                        <a href="#"><i class="fab fa-linkedin"></i></a>
+                        <a href="#"><i class="fab fa-github"></i></a>
+                        <a href="#"><i class="fab fa-instagram"></i></a>
+                    </div>
+                </div>
+                <div class="footer-links">
+                    <h3>Quick Links</h3>
+                    <a href="#home">Home</a>
+                    <a href="#how-it-works">Technology</a>
+                    <a href="#demo">Live Demo</a>
+                    <a href="#use-cases">Industries</a>
+                    <a href="#about">About Us</a>
+                    <a href="#contact">Contact</a>
+                </div>
+                <div class="footer-newsletter">
+                    <h3>Stay Updated</h3>
+                    <p>Subscribe to our newsletter for the latest updates on smart comfort technology.</p>
+                    <form id="newsletter-form" class="newsletter-form">
+                        <input type="email" placeholder="Your Email" required>
+                        <button type="submit" class="btn">Subscribe</button>
+                    </form>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2023 SmartComfort. All rights reserved. | <a href="#">Privacy Policy</a> | <a href="#">Terms of Service</a></p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Mobile Menu Toggle
+        const hamburger = document.querySelector('.hamburger');
+        const mobileMenu = document.querySelector('.mobile-menu');
+        
+        hamburger.addEventListener('click', () => {
+            hamburger.classList.toggle('active');
+            mobileMenu.classList.toggle('active');
+        });
+        
+        // Close mobile menu when clicking a link
+        document.querySelectorAll('.mobile-menu a').forEach(link => {
+            link.addEventListener('click', () => {
+                hamburger.classList.remove('active');
+                mobileMenu.classList.remove('active');
+            });
+        });
+        
+        // Smooth scrolling for navigation links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function(e) {
+                e.preventDefault();
+                
+                const targetId = this.getAttribute('href');
+                if (targetId === '#') return;
+                
+                const targetElement = document.querySelector(targetId);
+                if (targetElement) {
+                    window.scrollTo({
+                        top: targetElement.offsetTop - 70,
+                        behavior: 'smooth'
+                    });
+                }
+            });
+        });
+        
+        // Update range input values in real-time - FIXED SLIDER FUNCTIONALITY
+        const rangeInputs = document.querySelectorAll('input[type="range"]');
+        
+        // Initialize all sliders with their default values
+        rangeInputs.forEach(input => {
+            const valueDisplay = document.getElementById(`${input.id}-value`);
+            if (valueDisplay) {
+                valueDisplay.textContent = formatValue(input.id, input.value);
+            }
+            
+            // Update display when slider moves
+            input.addEventListener('input', (e) => {
+                const valueDisplay = document.getElementById(`${e.target.id}-value`);
+                if (valueDisplay) {
+                    valueDisplay.textContent = formatValue(e.target.id, e.target.value);
+                }
+            });
+        });
+        
+        function formatValue(id, value) {
+            switch(id) {
+                case 'temperature': return `${value}°C`;
+                case 'humidity': return `${value}%`;
+                case 'noise': return `${value}dB`;
+                case 'air-quality': return `${value}`;
+                case 'lighting': return `${value}`;
+                default: return value;
+            }
+        }
+        
+        // Form Submission with Loading State - FIXED PREDICTION FUNCTIONALITY
+        const comfortForm = document.getElementById('comfort-form');
+        if (comfortForm) {
+            comfortForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                
+                // Show loading
+                document.getElementById('loading').style.display = 'flex';
+                
+                // Get form data
+                const formData = new FormData(comfortForm);
+                const data = {
+                    temperature: parseFloat(formData.get('temperature')),
+                    humidity: parseInt(formData.get('humidity')),
+                    noise: parseInt(formData.get('noise')),
+                    airQuality: parseInt(formData.get('air-quality')),
+                    lighting: parseInt(formData.get('lighting'))
+                };
+                
+                // Simulate API call delay
+                await new Promise(resolve => setTimeout(resolve, 1000));
+                
+                // Calculate comfort score
+                const prediction = calculateComfortScore(data);
+                
+                // Display results
+                document.getElementById('comfort-score').textContent = prediction.score;
+                document.getElementById('comfort-feedback').textContent = prediction.feedback;
+                document.getElementById('suggestions').innerHTML = prediction.suggestions;
+                
+                // Hide loading
+                document.getElementById('loading').style.display = 'none';
+                
+                // Scroll to results for better UX
+                document.querySelector('.demo-result').scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'center'
+                });
+            });
+        }
+        
+        // Comfort score calculation - FIXED AND IMPROVED
+        function calculateComfortScore(data) {
+            // Weighted factors
+            const tempWeight = 0.3;
+            const humidityWeight = 0.2;
+            const noiseWeight = 0.15;
+            const airQualityWeight = 0.2;
+            const lightingWeight = 0.15;
+            
+            // Calculate individual scores (0-1 scale)
+            const tempScore = calculateTemperatureScore(data.temperature);
+            const humidityScore = calculateHumidityScore(data.humidity);
+            const noiseScore = calculateNoiseScore(data.noise);
+            const airQualityScore = calculateAirQualityScore(data.airQuality);
+            const lightingScore = calculateLightingScore(data.lighting);
+            
+            // Calculate weighted total score (2-5 scale)
+            let score = 2 + (
+                (tempScore * tempWeight) +
+                (humidityScore * humidityWeight) +
+                (noiseScore * noiseWeight) +
+                (airQualityScore * airQualityWeight) +
+                (lightingScore * lightingWeight)
+            ) * 3; // Scale to 2-5 range
+            
+            // Round to 1 decimal place
+            score = Math.round(score * 10) / 10;
+            
+            // Generate feedback and suggestions
+            const feedback = getFeedback(score);
+            const suggestions = getSuggestions(data);
+            
+            return {
+                score,
+                feedback,
+                suggestions: suggestions.length ? 
+                    '<h4>Optimization Suggestions:</h4><ul>' + 
+                    suggestions.map(s => `<li>${s}</li>`).join('') + 
+                    '</ul>' : '<p>All parameters are within optimal ranges!</p>'
+            };
+        }
+        
+        // Individual factor calculations
+        function calculateTemperatureScore(temp) {
+            // Ideal around 22°C, with decreasing comfort as it moves away
+            if (temp >= 20 && temp <= 24) return 1;
+            if (temp >= 18 && temp <= 26) return 0.8;
+            if (temp >= 15 && temp <= 29) return 0.6;
+            if (temp >= 10 && temp <= 32) return 0.4;
+            return 0.2;
+        }
+        
+        function calculateHumidityScore(humidity) {
+            // Ideal around 50%
+            if (humidity >= 45 && humidity <= 55) return 1;
+            if (humidity >= 40 && humidity <= 60) return 0.8;
+            if (humidity >= 35 && humidity <= 65) return 0.6;
+            if (humidity >= 30 && humidity <= 70) return 0.4;
+            return 0.2;
+        }
+        
+        function calculateNoiseScore(noise) {
+            // Lower is better
+            if (noise <= 40) return 1;
+            if (noise <= 50) return 0.8;
+            if (noise <= 60) return 0.6;
+            if (noise <= 70) return 0.4;
+            return 0.2;
+        }
+        
+        function calculateAirQualityScore(aqi) {
+            // Lower is better
+            if (aqi <= 50) return 1;
+            if (aqi <= 100) return 0.8;
+            if (aqi <= 150) return 0.6;
+            if (aqi <= 200) return 0.4;
+            return 0.2;
+        }
+        
+        function calculateLightingScore(lighting) {
+            // Ideal around 500 lux
+            if (lighting >= 400 && lighting <= 600) return 1;
+            if (lighting >= 300 && lighting <= 700) return 0.8;
+            if (lighting >= 200 && lighting <= 800) return 0.6;
+            if (lighting >= 100 && lighting <= 1000) return 0.4;
+            return 0.2;
+        }
+        
+        // Feedback based on score
+        function getFeedback(score) {
+            if (score >= 4.5) return 'Excellent comfort level! All environmental factors are within optimal ranges.';
+            if (score >= 3.5) return 'Good comfort level. Minor adjustments could further improve the environment.';
+            if (score >= 2.5) return 'Moderate comfort level. Several factors could be improved for better comfort.';
+            return 'Poor comfort level - significant improvements needed to create a comfortable environment.';
+        }
+        
+        // Suggestions for improvement
+        function getSuggestions(data) {
+            const suggestions = [];
+            
+            if (data.temperature < 20 || data.temperature > 24) {
+                suggestions.push(`Adjust temperature to ~22°C (currently ${data.temperature}°C)`);
+            }
+            if (data.humidity < 45 || data.humidity > 55) {
+                suggestions.push(`Maintain humidity between 45-55% (currently ${data.humidity}%)`);
+            }
+            if (data.noise > 50) {
+                suggestions.push(`Reduce noise levels below 50dB (currently ${data.noise}dB)`);
+            }
+            if (data.airQuality > 100) {
+                suggestions.push(`Improve air quality below 100 AQI (currently ${data.airQuality})`);
+            }
+            if (data.lighting < 400 || data.lighting > 600) {
+                suggestions.push(`Adjust lighting to 400-600 lux (currently ${data.lighting} lux)`);
+            }
+            
+            return suggestions;
+        }
+        
+        // Simple form submission handlers
+        document.getElementById('contact-form')?.addEventListener('submit', function(e) {
+            e.preventDefault();
+            alert('Thank you for your message! We will get back to you soon.');
+            this.reset();
+        });
+        
+        document.getElementById('newsletter-form')?.addEventListener('submit', function(e) {
+            e.preventDefault();
+            alert('Thank you for subscribing to our newsletter!');
+            this.reset();
+        });
+        
+        // Navbar scroll effect
+        window.addEventListener('scroll', function() {
+            const navbar = document.getElementById('navbar');
+            if (window.scrollY > 50) {
+                navbar.classList.add('scrolled');
+            } else {
+                navbar.classList.remove('scrolled');
+            }
+        });
+        
+        // Back to top button
+        const backToTopButton = document.getElementById('backToTop');
+        
+        window.addEventListener('scroll', function() {
+            if (window.scrollY > 300) {
+                backToTopButton.classList.add('active');
+            } else {
+                backToTopButton.classList.remove('active');
+            }
+        });
+        
+        backToTopButton.addEventListener('click', function() {
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        });
+        
+        // Animation on scroll
+        function animateOnScroll() {
+            const elements = document.querySelectorAll('.step, .use-case-card, .about-content, .contact-container');
+            
+            elements.forEach(element => {
+                const elementPosition = element.getBoundingClientRect().top;
+                const screenPosition = window.innerHeight / 1.2;
+                
+                if (elementPosition < screenPosition) {
+                    element.style.opacity = '1';
+                    element.style.transform = 'translateY(0)';
+                }
+            });
+        }
+        
+        // Set initial state for animated elements
+        document.querySelectorAll('.step, .use-case-card, .about-content, .contact-container').forEach(el => {
+            el.style.opacity = '0';
+            el.style.transform = 'translateY(30px)';
+            el.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+        });
+        
+        window.addEventListener('scroll', animateOnScroll);
+        window.addEventListener('load', animateOnScroll);
+    </script>
+</body>
+</html>
